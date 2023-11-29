@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Regresión Lineal Simple</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Regresión Lineal Simple</h1>
+
+        <label for="excelInput">Cargar datos desde Excel: </label>
+        <input type="file" id="excelInput" accept=".xlsx, .xls" onchange="cargarDatosDesdeExcel()">
+        <br>
+        <label for="inputX">Ingrese los valores de X:</label>
+        <input type="text" id="inputX" placeholder="Ingrese valores de X (separados por coma)">
+
+        <label for="inputY">Ingrese los valores de Y:</label>
+        <input type="text" id="inputY" placeholder="Ingrese valores de Y (separados por coma)">
+
+        <button onclick="calcularRegresion()">Calcular Regresión</button>
+        <button onclick="limpiarDatos()">Limpiar Datos</button>
+
+        <div id="resultado"></div>
+        <center><canvas id="scatterPlot" width="400" height="400"></canvas></center>
+
+    </div>
+
+    <script src="script.js"></script>
+
+    <script>  // Función para limpiar los datos
+        function limpiarDatos() {
+            document.getElementById('inputX').value = '';
+            document.getElementById('inputY').value = '';
+            document.getElementById('resultado').innerHTML = '';
+
+            // Obtén el contexto del gráfico y límpialo
+            var scatterChart = Chart.getChart('scatterPlot');
+            if (scatterChart) {
+                scatterChart.destroy();
+            }
+        }
+        // Función para cargar datos desde un archivo Excel
+        function cargarDatosDesdeExcel() {
+            var excelInput = document.getElementById('excelInput');
+            var files = excelInput.files;
+
+            if (files.length === 0) return;
+
+            var file = files[0];
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                var data = new Uint8Array(e.target.result);
+                var workbook = XLSX.read(data, { type: 'array' });
+
+                // Obtener la primera hoja de cálculo del libro de trabajo
+                var firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+
+                // Convertir la hoja de cálculo a un objeto JSON
+                var jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+
+                // Transponer la matriz para obtener datos por columna
+                var transposedData = jsonData[0].map(function (col, i) {
+                    return jsonData.map(function (row) {
+                        return row[i];
+                    });
+                });
+
+                // Obtener las columnas X e Y
+                var columnX = transposedData[0];
+                var columnY = transposedData[1];
+
+                // Actualizar los campos de entrada con los datos cargados
+                document.getElementById('inputX').value = columnX.join(', ');
+                document.getElementById('inputY').value = columnY.join(', ');
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+    </script>
+</body>
+
+</html>
